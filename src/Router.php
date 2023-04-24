@@ -180,17 +180,17 @@ REGEX;
                 continue;
             }
             $route = $data['routeMap'][count($matches)];
-            $params = [];
+            $query = [];
             $i = 0;
             foreach ($route['variables'] as $varName) {
-                $params[$varName] = $matches[++$i];
+                $query[$varName] = $matches[++$i];
             }
-            return [$route['handler'], $route['middlewares'], array_merge($params, $route['params'])];
+            return [$route['handler'], $route['middlewares'], $route['params'], $query];
         }
         return null;
     }
 
-    public function build(string $name, array $params = [], string $methods = 'GET'): string
+    public function build(string $name, array $query = [], string $methods = 'GET'): string
     {
         list($staticRouteMap, $variableRouteData) = $this->getData();
         $methods = explode('|', strtoupper($methods));
@@ -203,10 +203,6 @@ REGEX;
                 if ($route['name'] != $name) {
                     continue;
                 }
-                if (!$this->checkParams($route['params'], $params)) {
-                    continue;
-                }
-                $query = array_diff_key($params, $route['params']);
                 $search = http_build_query($query);
                 return $route['routeStr'] . (strlen($search) ? '?' . $search : '');
             }
@@ -242,10 +238,7 @@ REGEX;
                     if ($route['name'] != $name) {
                         continue;
                     }
-                    if (!$this->checkParams($route['params'], $params)) {
-                        continue;
-                    }
-                    $tmp = $build($route['routeData'], array_diff_key($params, $route['params']));
+                    $tmp = $build($route['routeData'], $query);
                     if (!is_array($tmp)) {
                         continue;
                     }
@@ -255,18 +248,8 @@ REGEX;
             }
         }
 
-        $search = http_build_query($params);
+        $search = http_build_query($query);
         return $this->getSiteRoot() . $name . (strlen($search) ? '?' . $search : '');
-    }
-
-    private function checkParams(array $route_params, array $build_params): bool
-    {
-        foreach ($route_params as $key => $value) {
-            if (isset($build_params[$key]) && ($build_params[$key] != $value)) {
-                return false;
-            }
-        }
-        return true;
     }
 
     private function getSiteRoot(): string
