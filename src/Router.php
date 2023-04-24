@@ -252,7 +252,7 @@ REGEX;
         return $this->getSiteRoot() . $name . (strlen($search) ? '?' . $search : '');
     }
 
-    private function getSiteRoot(): string
+    public function getSiteRoot(): string
     {
         $scheme = !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' ? 'https' : 'http';
         $host = $port = null;
