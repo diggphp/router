@@ -9,18 +9,19 @@ diggphp router
 * 支持分组路由
 * 支持正则路由
 
-## 实例化
-
-``` php
-$router = new \DiggPHP\Router\Router;
-```
-
 ## 代码示例
 
 ``` php
-$router->get('/path1/{id:\d+}', 'somehandler1');
-$router->get('/path2[/{id:\d+}]', 'somehandler2');
-$router->addGroup('/group', function (Collector $collector) {
+
+$parser = new Parser;
+$generator = new Generator;
+$colloctor = new Collector(new Parser, $generator);
+$dispatcher = new Dispatcher($generator);
+$builder = new Builder($generator);
+
+$colloctor->get('/path1/{id:\d+}', 'somehandler1');
+$colloctor->get('/path2[/{id:\d+}]', 'somehandler2');
+$colloctor->addGroup('/group', function (Collector $collector) {
     $collector->bindMiddlewares(['somemiddleware1', 'somemiddleware2']);
     $collector->bindParams([
         'q' => '111',
@@ -30,7 +31,7 @@ $router->addGroup('/group', function (Collector $collector) {
     $collector->get('/sub3/{id:\d+}', 'otherhandler3', 'name2', ['middleware3']);
 });
 
-$res = $router->dispatch('GET', '/path2/33');
+$dispatcher->dispatch('GET', '/path2/33');
 // Array
 // (
 //     [0] => 1
@@ -50,7 +51,7 @@ $res = $router->dispatch('GET', '/path2/33');
 
 // )
 
-$res = $router->dispatch('GET', '/group/sub1');
+$dispatcher->dispatch('GET', '/group/sub1');
 // Array
 // (
 //     [0] => 1
@@ -72,7 +73,7 @@ $res = $router->dispatch('GET', '/group/sub1');
 
 // )
 
-$res = $router->dispatch('GET', '/group/sub2');
+$dispatcher->dispatch('GET', '/group/sub2');
 // Array
 // (
 //     [0] => 1
@@ -95,7 +96,7 @@ $res = $router->dispatch('GET', '/group/sub2');
 
 // )
 
-$res = $router->dispatch('GET', '/group/sub3/11');
+$dispatcher->dispatch('GET', '/group/sub3/11');
 // Array
 // (
 //     [0] => 1
@@ -119,6 +120,6 @@ $res = $router->dispatch('GET', '/group/sub3/11');
 
 // )
 
-$res = $router->build('name2', ['id' => 11]);
+$url = $builder->build('name2', ['id' => 11]);
 // /group/sub3/11
 ```
