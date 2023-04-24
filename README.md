@@ -13,25 +13,21 @@ diggphp router
 
 ``` php
 
-$parser = new Parser;
-$generator = new Generator;
-$colloctor = new Collector(new Parser, $generator);
-$dispatcher = new Dispatcher($generator);
-$builder = new Builder($generator);
+$router = new Router();
 
-$colloctor->get('/path1/{id:\d+}', 'somehandler1');
-$colloctor->get('/path2[/{id:\d+}]', 'somehandler2');
-$colloctor->addGroup('/group', function (Collector $collector) {
-    $collector->bindMiddlewares(['somemiddleware1', 'somemiddleware2']);
-    $collector->bindParams([
+$router->get('/path1/{id:\d+}', 'somehandler1');
+$router->get('/path2[/{id:\d+}]', 'somehandler2');
+$router->addGroup('/group', function (Router $router) {
+    $router->bindMiddlewares(['somemiddleware1', 'somemiddleware2']);
+    $router->bindParams([
         'q' => '111',
     ]);
-    $collector->get('/sub1', 'otherhandler1');
-    $collector->get('/sub2', 'otherhandler2', 'name1', ['middleware3']);
-    $collector->get('/sub3/{id:\d+}', 'otherhandler3', 'name2', ['middleware3']);
+    $router->get('/sub1', 'otherhandler1');
+    $router->get('/sub2', 'otherhandler2', 'name1', ['middleware3']);
+    $router->get('/sub3/{id:\d+}', 'otherhandler3', 'name2', ['middleware3']);
 });
 
-$dispatcher->dispatch('GET', '/path2/33');
+$router->dispatch('GET', '/path2/33');
 // Array
 // (
 //     [0] => 1
@@ -51,7 +47,7 @@ $dispatcher->dispatch('GET', '/path2/33');
 
 // )
 
-$dispatcher->dispatch('GET', '/group/sub1');
+$router->dispatch('GET', '/group/sub1');
 // Array
 // (
 //     [0] => 1
@@ -73,7 +69,7 @@ $dispatcher->dispatch('GET', '/group/sub1');
 
 // )
 
-$dispatcher->dispatch('GET', '/group/sub2');
+$router->dispatch('GET', '/group/sub2');
 // Array
 // (
 //     [0] => 1
@@ -96,7 +92,7 @@ $dispatcher->dispatch('GET', '/group/sub2');
 
 // )
 
-$dispatcher->dispatch('GET', '/group/sub3/11');
+$router->dispatch('GET', '/group/sub3/11');
 // Array
 // (
 //     [0] => 1
@@ -120,6 +116,6 @@ $dispatcher->dispatch('GET', '/group/sub3/11');
 
 // )
 
-$url = $builder->build('name2', ['id' => 11]);
+$url = $router->build('name2', ['id' => 11]);
 // /group/sub3/11
 ```
