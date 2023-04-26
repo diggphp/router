@@ -15,17 +15,13 @@ diggphp router
 
 $router = new Router();
 
-$router->get('/path1/{id:\d+}', 'somehandler1');
-$router->get('/path2[/{id:\d+}]', 'somehandler2');
+$router->addRoute(['GET'], '/path1/{id:\d+}', 'somehandler1');
+$router->addRoute(['GET'], '/path2[/{id:\d+}]', 'somehandler2');
 $router->addGroup('/group', function (Router $router) {
-    $router->bindMiddlewares(['somemiddleware1', 'somemiddleware2']);
-    $router->bindParams([
-        'q' => '111',
-    ]);
-    $router->get('/sub1', 'otherhandler1');
-    $router->get('/sub2', 'otherhandler2', 'name1', ['middleware3']);
-    $router->get('/sub3/{id:\d+}', 'otherhandler3', 'name2', ['middleware3']);
-});
+    $router->addRoute(['GET'], '/sub1', 'otherhandler1');
+    $router->addRoute(['GET'], '/sub2', 'otherhandler2', 'name1', ['middleware3']);
+    $router->addRoute(['GET'], '/sub3/{id:\d+}', 'otherhandler3', 'name2', ['middleware3']);
+}, ['somemiddleware1', 'somemiddleware2'], ['q'=>'111']);
 
 $router->dispatch('GET', '/path2/33');
 // Array

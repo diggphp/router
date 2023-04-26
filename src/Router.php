@@ -35,41 +35,6 @@ REGEX;
         $this->currentParams = $params;
     }
 
-    public function get(string $route, $handler, array $middlewares = [], array $params = [], string $name = null): self
-    {
-        return $this->addRoute(['GET'], $route, $handler, $middlewares, $params, $name);
-    }
-
-    public function post(string $route, $handler, array $middlewares = [], array $params = [], string $name = null): self
-    {
-        return $this->addRoute(['POST'], $route, $handler, $middlewares, $params, $name);
-    }
-
-    public function put(string $route, $handler, array $middlewares = [], array $params = [], string $name = null): self
-    {
-        return $this->addRoute(['PUT'], $route, $handler, $middlewares, $params, $name);
-    }
-
-    public function delete(string $route, $handler, array $middlewares = [], array $params = [], string $name = null): self
-    {
-        return $this->addRoute(['DELETE'], $route, $handler, $middlewares, $params, $name);
-    }
-
-    public function patch(string $route, $handler, array $middlewares = [], array $params = [], string $name = null): self
-    {
-        return $this->addRoute(['PATCH'], $route, $handler, $middlewares, $params, $name);
-    }
-
-    public function head(string $route, $handler, array $middlewares = [], array $params = [], string $name = null): self
-    {
-        return $this->addRoute(['HEAD'], $route, $handler, $middlewares, $params, $name);
-    }
-
-    public function any(string $route, $handler, array $middlewares = [], array $params = [], string $name = null): self
-    {
-        return $this->addRoute(['*'], $route, $handler, $middlewares, $params, $name);
-    }
-
     public function addGroup(string $prefix, callable $callback, array $middlewares = [], array $params = []): self
     {
         $previousGroupPrefix = $this->currentGroupPrefix;
@@ -283,7 +248,7 @@ REGEX;
         return $site_base . $site_path;
     }
 
-    public function addData(
+    protected function addData(
         string $httpMethod,
         array $routeData,
         $handler,
@@ -476,7 +441,7 @@ REGEX;
         );
     }
 
-    public function parse(string $route): array
+    protected function parse(string $route): array
     {
         $routeWithoutClosingOptionals = rtrim($route, ']');
         $numOptionals = strlen($route) - strlen($routeWithoutClosingOptionals);
