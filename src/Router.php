@@ -145,20 +145,29 @@ REGEX;
                 continue;
             }
             $route = $data['routeMap'][count($matches)];
-            $query = [];
+            $params = [];
             $i = 0;
             foreach ($route['variables'] as $varName) {
-                $query[$varName] = $matches[++$i];
+                $params[$varName] = $matches[++$i];
             }
-            return [$route['handler'], $route['middlewares'], $route['params'], $query];
+            return [$route['handler'], $route['middlewares'], array_merge($params, $route['params'])];
         }
         return null;
     }
 
-    public function build(string $name, array $query = [], string $methods = 'GET'): string
+    public function build(string $name, array $params = [], string $methods = 'GET'): string
     {
         list($staticRouteMap, $variableRouteData) = $this->getData();
         $methods = explode('|', strtoupper($methods));
+
+        $check_params = function (array $route_params, array $build_params): bool {
+            foreach ($route_params as $key => $value) {
+                if (isset($build_params[$key]) && ($build_params[$key] != $value)) {
+                    return false;
+                }
+            }
+            return true;
+        };
 
         foreach ($staticRouteMap as $_method => $routes) {
             if ($_method != '*' && !in_array($_method, $methods)) {
@@ -168,21 +177,25 @@ REGEX;
                 if ($route['name'] != $name) {
                     continue;
                 }
-                $search = http_build_query($query);
+                if (!$check_params($route['params'], $params)) {
+                    continue;
+                }
+                $params = array_diff_key($params, $route['params']);
+                $search = http_build_query($params);
                 return $route['routeStr'] . (strlen($search) ? '?' . $search : '');
             }
         }
 
-        $build = function (array $routeData, $querys): ?array {
+        $build = function (array $routeData, $params): ?array {
             $uri = '';
             foreach ($routeData as $part) {
                 if (is_array($part)) {
                     if (
-                        isset($querys[$part[0]])
-                        && preg_match('~^' . $part[1] . '$~', (string) $querys[$part[0]])
+                        isset($params[$part[0]])
+                        && preg_match('~^' . $part[1] . '$~', (string) $params[$part[0]])
                     ) {
-                        $uri .= urlencode((string)$querys[$part[0]]);
-                        unset($querys[$part[0]]);
+                        $uri .= urlencode((string)$params[$part[0]]);
+                        unset($params[$part[0]]);
                         continue;
                     } else {
                         return null;
@@ -191,7 +204,7 @@ REGEX;
                     $uri .= $part;
                 }
             }
-            return [$uri, $querys];
+            return [$uri, $params];
         };
 
         foreach ($variableRouteData as $_method => $chunks) {
@@ -203,7 +216,10 @@ REGEX;
                     if ($route['name'] != $name) {
                         continue;
                     }
-                    $tmp = $build($route['routeData'], $query);
+                    if (!$check_params($route['params'], $params)) {
+                        continue;
+                    }
+                    $tmp = $build($route['routeData'], array_diff_key($params, $route['params']));
                     if (!is_array($tmp)) {
                         continue;
                     }
@@ -213,7 +229,7 @@ REGEX;
             }
         }
 
-        $search = http_build_query($query);
+        $search = http_build_query($params);
         return $this->getSiteRoot() . $name . (strlen($search) ? '?' . $search : '');
     }
 
